@@ -1,45 +1,17 @@
-//Inport required library 
-const _express = require('express');
-const _api = _express();
-
-//For json parser
-_api.use(_express.json());
-_api.use(_express.urlencoded({extended: true}));
-
-//To run api on port 3000
-_api.listen(3000, () => {
-  console.log('API up and running!');
-});
-
-//Get request to check api running or not
-_api.get('/', (req, res) => {
-    console.log(req);
-    res.send('BMI calculation API is alive!');
-  });
-
-//post request to get json data
-_api.post('/calculateBMI', (req, res) => {
-    //console.log(req.body);
-   var result = dataSetWithBMI(req.body);
-    res.send("Response result : "+ result);
-   });
-
+module.exports = {
 //Create dataset with BMI and health risk
-function dataSetWithBMI(data){
+ dataSetWithBMI:function(data){
     var dataset=[];
-    
+    //reset ouver weight cout
+    overWeightCount=0;
     data.forEach(function(item) { 
         dataset.push(getKeyValue(item));
     });
-    
-    var hasOwn = Object.prototype.hasOwnProperty;
-    var count = 0;
-    for (var k in dataset) if (hasOwn.call(dataset, k)) ++count;
-    console.log(count);
-    let overWeightCount = dataset.filter(x => x["BMICategory"] === "Over Weight").length;
-    return JSON.stringify({"OverWeightCount":overWeightCount,"Result":dataset});
+    return {"OverWeightCount":overWeightCount,"Result":dataset};
    }
+}
 
+//Get key value pair
 function getKeyValue(e){
     let bmi = CalculateTheBMI(e.HeightCm,e.WeightKg);
     return {
@@ -63,10 +35,10 @@ function CalculateTheBMI(HeightCm, WeightKg){
 function FindeBMICategory(bmi){
     if(bmi<=18.4){ return "Under Weight";}
     else if(bmi>=18.5 && bmi<=24.9){return "Normal Weight";}
-    else if(bmi>=25 && bmi<=29.9){return "Over Weight";}
-    else if(bmi>=30 && bmi<=34.9){return "Moderately Obese";}
-    else if(bmi>=35 && bmi<=39.9){return "Severely Obese";}
-    else if(bmi>=40){return "Very Severely Obese";}
+    else if(bmi>=25 && bmi<=29.9){ overWeightCount++; return "Over Weight";}
+    else if(bmi>=30 && bmi<=34.9){overWeightCount++; return "Moderately Obese";}
+    else if(bmi>=35 && bmi<=39.9){overWeightCount++; return "Severely Obese";}
+    else if(bmi>=40){overWeightCount++; return "Very Severely Obese";}
     else {return "Unknown BMI value";}
 }
 
